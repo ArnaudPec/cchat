@@ -10,42 +10,16 @@
 #include <pthread.h>
 #include <signal.h>
 #include <errno.h>
-
-#define MAX_CLIENTS 10
-#define BUFFER_SZ 2048
-#define NAME_LEN 40
+#include "utils.h"
 
 static unsigned int _client_count = 0;
 static _Atomic int _uid = 0;
-
-/* Client Structure */
-typedef struct{
-    struct sockaddr_in address;
-    int sockfd;
-    int uid;
-    char name[NAME_LEN];
-} client_t;
 
 void queue_add(client_t *cl);
 void queue_remove(int uid);
 
 client_t *clients[MAX_CLIENTS];
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-void str_overwrite_stdout() {
-    printf("\r%s", "> ");
-    fflush(stdout);
-}
-
-void str_trim_lf(char *arr, int len)
-{
-   for (int i = 0; i < len; ++i) {
-       if (arr[i] == '\n') {
-           arr[i] = '\0';
-           break;
-       }
-   }
-}
 
 void queue_add(client_t *cl)
 {

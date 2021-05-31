@@ -10,29 +10,12 @@
 #include <signal.h>
 #include <errno.h>
 #include <pthread.h>
+#include "utils.h"
 
-#define MAX_CLIENTS 100
-#define BUFFER_SZ 2048
-#define NAME_LEN 40
 
 volatile sig_atomic_t flag = 0;
 int sockfd = 0;
 char name[NAME_LEN];
-
-void str_overwrite_stdout() {
-    printf("\r%s", "> ");
-    fflush(stdout);
-}
-
-void str_trim_lf(char *arr, int len)
-{
-   for (int i = 0; i < len; ++i) {
-       if (arr[i] == '\n') {
-           arr[i] = '\0';
-           break;
-       }
-   }
-}
 
 void catch_sigint_exit() {
     flag = 1;
