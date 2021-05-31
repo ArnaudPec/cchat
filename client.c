@@ -41,7 +41,7 @@ void recv_msg_handler()
 void send_msg_handler()
 {
     char buffer[BUFFER_SZ] = {};
-    char message[BUFFER_SZ] = {};
+    char message[BUFFER_SZ + NAME_LEN + 2] = {};
     for (;;)
     {
         str_overwrite_stdout();
@@ -56,7 +56,7 @@ void send_msg_handler()
         }
 
         bzero(buffer, BUFFER_SZ);
-        bzero(message, BUFFER_SZ);
+        bzero(message, BUFFER_SZ + NAME_LEN + 2);
     }
 
     catch_sigint_exit(2);
@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
 {
     char *ip = "127.0.0.1";
     int port;
-    int listenfd = -1;
     int ret;
     struct sockaddr_in server_addr;
 

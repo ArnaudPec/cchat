@@ -197,8 +197,6 @@ int main(int argc, char *argv[])
 
         if ((_client_count + 1) == MAX_CLIENTS) {
             printf("Max clients connected. Connection refused\n");
-
-            print_ip(cli_addr);
             close(connfd);
             continue;
         }
@@ -210,6 +208,7 @@ int main(int argc, char *argv[])
         cli->uid = _uid++;
 
         printf("Accepted %d\n", cli->uid);
+        print_ip(cli_addr);
 
         /* Add client to the queue */
         queue_add(cli);
