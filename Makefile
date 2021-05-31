@@ -1,14 +1,16 @@
-cc=gcc -Wall -Wextra
+CC=gcc
+CFLAGS= -Wall -Wextra -ggdb
+LIBS= -pthread
 all: client server
 
-client: client.c
-	${cc} -c client.c
+client:
+	$(CC) client.c $(LIBS) -o client
 
-server: server.c
-	${cc} -c server.c
+server:
+	$(CC) server.c $(LIBS) -o server
 
 cppcheck:
 	cppcheck --enable=all *.c
 
 clean :
-	rm -rf client server
+	rm -rf client server *o
