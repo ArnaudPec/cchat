@@ -1,13 +1,21 @@
 CC=gcc
-CFLAGS= -Wall -Wextra -ggdb
+CFLAGS= -I. -Wall -Wextra -ggdb
 LIBS= -pthread
+DEPS= utils.h
+
+CLIENT_OBJS=client.o utils.o
+SERVER_OBS=server.o utils.o
+
 all: client server
 
-client:
-	$(CC) client.c $(LIBS) -o client
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-server:
-	$(CC) server.c $(LIBS) -o server
+client: $(CLIENT_OBJS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+server: $(SERVER_OBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 cppcheck:
 	cppcheck --enable=all *.c
