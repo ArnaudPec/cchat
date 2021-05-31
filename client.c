@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     /* Send client name */
     send(_sockfd, _name, NAME_LEN, 0);
 
-    printf("CHATROOM\n");
+    print_greeting_message();
 
     pthread_t send_msg_thread;
     ret = pthread_create(&send_msg_thread, NULL, (void*)send_msg_handler, NULL);

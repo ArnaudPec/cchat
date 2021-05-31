@@ -17,3 +17,4 @@ typedef struct{
 void str_overwrite_stdout();
 void str_trim_lf(char *arr, int len);
 int verify_client_name(char *name);
+void print_greeting_message();

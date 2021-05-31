@@ -27,3 +27,10 @@ int verify_client_name(char *name)
 
    return ret;
 }
+
+void print_greeting_message()
+{
+    printf("---- Welcome to the chatroom ----\n"
+           "\nAvaiblable command: \n"
+           "--> \"exit\" : exit the chatroom\n");
+}

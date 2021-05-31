@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
        return EXIT_FAILURE;
     }
 
-    printf("CHATROOM\n");
+    print_greeting_message();
 
     for(;;)
     {
