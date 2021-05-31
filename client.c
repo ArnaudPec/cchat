@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
     fgets(name, NAME_LEN, stdin);
     str_trim_lf(name, strlen(name));
 
-    if (strlen(name) > NAME_LEN - 1 || strlen(name) < 2) {
-        printf("Incorrect name\n");
+    ret = verify_client_name(_name);
+    if (ret) {
         return EXIT_FAILURE;
     }
 

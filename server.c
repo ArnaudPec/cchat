@@ -93,7 +93,7 @@ void *handle_client(void *arg)
     /* Name */
     ret = recv(cli->sockfd, name, NAME_LEN, 0);
 
-    if (ret <= 0 || strlen(name) < 2 || strlen(name) >= NAME_LEN -1) {
+    if (ret <= 0 || verify_client_name(name)) {
        printf("Enter the name correctly\n");
        leave_flag = 1;
     } else {

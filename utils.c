@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include "utils.h"
 
 void str_overwrite_stdout() {
     printf("\r%s", "> ");
@@ -15,3 +17,13 @@ void str_trim_lf(char *arr, int len)
    }
 }
 
+int verify_client_name(char *name)
+{
+   int ret = 0;
+   if ((strlen(name) > NAME_LEN-1) || (strlen(name) < 2)) {
+       printf("Incorrect name: 2 <= name_len < %d\n", NAME_LEN-1);
+       ret = 1;
+   }
+
+   return ret;
+}
