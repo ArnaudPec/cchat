@@ -15,54 +15,51 @@
 static unsigned int _client_count = 0;
 static _Atomic int _uid = 0;
 
-void queue_add(client_t *cl);
-void queue_remove(int uid);
+client_t *_clients[MAX_CLIENTS];
+pthread_mutex_t _client_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-client_t *clients[MAX_CLIENTS];
-pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-void queue_add(client_t *cl)
+static void _queue_add(client_t *cl)
 {
     int i;
-    pthread_mutex_lock(&clients_mutex);
+    pthread_mutex_lock(&_client_mutex);
 
     for (i = 0; i < MAX_CLIENTS; ++i) {
-        if (!clients[i]) {
-            clients[i] = cl;
+        if (!_clients[i]) {
+            _clients[i] = cl;
             break;
         }
     }
 
-    pthread_mutex_unlock(&clients_mutex);
+    pthread_mutex_unlock(&_client_mutex);
 }
 
-void queue_remove(int uid)
+static void _queue_remove(int uid)
 {
     int i;
-    pthread_mutex_lock(&clients_mutex);
+    pthread_mutex_lock(&_client_mutex);
 
     for (i = 0; i < MAX_CLIENTS; ++i) {
-        if (clients[i]) {
-            if (clients[i]->uid == uid) {
-                clients[i] = NULL;
+        if (_clients[i]) {
+            if (_clients[i]->uid == uid) {
+                _clients[i] = NULL;
                 break;
             }
         }
     }
 
-    pthread_mutex_unlock(&clients_mutex);
+    pthread_mutex_unlock(&_client_mutex);
 }
 
 void send_message(char *msg, int uid)
 {
     int i;
     int ret;
-    pthread_mutex_lock(&clients_mutex);
+    pthread_mutex_lock(&_client_mutex);
 
     for (i = 0; i < MAX_CLIENTS; ++i) {
-        if (clients[i]) {
-            if (clients[i]->uid != uid) {
-                ret = write(clients[i]->sockfd, msg, strlen(msg));
+        if (_clients[i]) {
+            if (_clients[i]->uid != uid) {
+                ret = write(_clients[i]->sockfd, msg, strlen(msg));
                 if (ret < 0 ) {
                     printf("ERROR: write %s\n", strerror(errno));
                     break;
@@ -71,7 +68,7 @@ void send_message(char *msg, int uid)
         }
     }
 
-    pthread_mutex_unlock(&clients_mutex);
+    pthread_mutex_unlock(&_client_mutex);
 }
 
 void print_ip(struct sockaddr_in addr)
@@ -119,7 +116,7 @@ void *handle_client(void *arg)
                 str_trim_lf(buffer, strlen(buffer));
                 printf("%s -> %s", buffer, cli->name);
             }
-        } else if (receive == 0 || strcmp(buffer, "exit") == 0) {
+        } else if (receive == 0 || strncmp(buffer, "exit", strlen(buffer)) == 0) {
             sprintf(buffer, "%s has left\n", cli->name);
             printf("%s\n", buffer);
             send_message(buffer, cli->uid);
@@ -132,7 +129,7 @@ void *handle_client(void *arg)
         bzero(buffer, BUFFER_SZ);
     }
     close(cli->sockfd);
-    queue_remove(cli->uid);
+    _queue_remove(cli->uid);
 
     _client_count--;
     free(cli);
@@ -148,7 +145,8 @@ int main(int argc, char *argv[])
     int port;
     int ret;
     int option = 1;
-    int listenfd = 0, connfd =0;
+    int listenfd = -1;
+    int connfd = -1;
     struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
     pthread_t tid;
@@ -196,7 +194,9 @@ int main(int argc, char *argv[])
         connfd = accept(listenfd, (struct sockaddr*)&cli_addr, &clilen);
 
         if ((_client_count + 1) == MAX_CLIENTS) {
-            printf("Max clients connected. Connection refused\n");
+            printf("Maximum clients reached %d. Connection refused\n",
+                    MAX_CLIENTS);
+
             close(connfd);
             continue;
         }
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
         print_ip(cli_addr);
 
         /* Add client to the queue */
-        queue_add(cli);
+        _queue_add(cli);
         pthread_create(&tid, NULL, &handle_client, (void*)cli);
 
         sleep(1);

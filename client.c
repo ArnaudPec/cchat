@@ -12,10 +12,9 @@
 #include <pthread.h>
 #include "utils.h"
 
-
 volatile sig_atomic_t flag = 0;
-int sockfd = 0;
-char name[NAME_LEN];
+static int _sockfd = -1;
+static char _name[NAME_LEN];
 
 void catch_sigint_exit() {
     flag = 1;
@@ -26,7 +25,7 @@ void recv_msg_handler()
     char message[BUFFER_SZ] = {};
     for (;;)
     {
-        int receive = recv(sockfd, message, BUFFER_SZ, 0);
+        int receive = recv(_sockfd, message, BUFFER_SZ, 0);
 
         if (receive > 0) {
            printf("%s\n", message);
@@ -48,11 +47,11 @@ void send_msg_handler()
         fgets(buffer, BUFFER_SZ, stdin);
         str_trim_lf(buffer, BUFFER_SZ);
 
-        if (strcmp(buffer, "exit") == 0) {
+        if (strncmp(buffer, "exit", strlen(buffer)) == 0) {
            break;
         } else {
-            sprintf(message, "%s: %s\n", name, buffer);
-            send(sockfd, message, strlen(message), 0);
+            sprintf(message, "%s: %s\n", _name, buffer);
+            send(_sockfd, message, strlen(message), 0);
         }
 
         bzero(buffer, BUFFER_SZ);
@@ -77,8 +76,8 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, catch_sigint_exit);
     printf("Name?: ");
-    fgets(name, NAME_LEN, stdin);
-    str_trim_lf(name, strlen(name));
+    fgets(_name, NAME_LEN, stdin);
+    str_trim_lf(_name, strlen(_name));
 
     ret = verify_client_name(_name);
     if (ret) {
@@ -87,20 +86,20 @@ int main(int argc, char *argv[])
 
 
     /* Socket parameters */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    _sockfd = socket(AF_INET, SOCK_STREAM, 0);
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(ip);
     server_addr.sin_port = htons(port);
 
     /* Connect to the server */
-    ret = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+    ret = connect(_sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     if (ret == -1) {
         printf("Error: connect %s\n", strerror(errno));
 
     }
 
     /* Send client name */
-    send(sockfd, name, NAME_LEN, 0);
+    send(_sockfd, _name, NAME_LEN, 0);
 
     printf("CHATROOM\n");
 
@@ -128,7 +127,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    close(sockfd);
+    close(_sockfd);
 
     return EXIT_SUCCESS;
 }
